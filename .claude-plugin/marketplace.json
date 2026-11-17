@@ -1,0 +1,17 @@
+{
+  "name": "note-it-down",
+  "owner": {
+    "name": "Ivan Markov"
+  },
+  "metadata": {
+    "description": "Note It Down!: save bits of your Claude conversation to Apple Notes with /note."
+  },
+  "plugins": [
+    {
+      "name": "note-it-down",
+      "source": "./",
+      "description": "Save bits of your Claude conversation to Apple Notes with /note, and read them back. macOS only.",
+      "version": "0.1.0"
+    }
+  ]
+}
