@@ -1,10 +1,12 @@
-<img src="assets/icon.png" alt="Note It Down! icon" width="96" align="right">
+<p align="center">
+  <img src="assets/icon.png" alt="Note It Down! icon" width="112">
+</p>
 
-# Note It Down!
+<h1 align="center">Note It Down!</h1>
+
+<p align="center"><b>Your Claude chat notes, kept in Apple Notes.</b><br>A Claude skill for Claude Code and the Claude Desktop app on macOS.</p>
 
 Save bits of your Claude conversation into **Apple Notes** with one command, `/note`, and read them back later in the same chat. Every chat session gets its own note in a **Claude Notes** folder, so your decisions, ideas and diagrams stay in one place you can open, edit and sync like any other note.
-
----
 
 ## Where it works
 
@@ -14,8 +16,6 @@ Save bits of your Claude conversation into **Apple Notes** with one command, `/n
 | Regular chat in the **Claude Desktop app on macOS** | ✅ | Claude runs the Notes script on your Mac through the desktop app, so the app must be open on that Mac. |
 | Windows, Linux, iPhone/iPad, or a browser with no Claude Desktop app on a Mac | ❌ | Apple Notes is only reachable on a Mac. Claude will tell you it can't reach Notes. |
 
----
-
 ## Requirements
 
 - A Mac running macOS with **Apple Notes** (built in).
@@ -23,8 +23,6 @@ Save bits of your Claude conversation into **Apple Notes** with one command, `/n
 - A Claude plan that supports Skills (needed to upload the skill in the Desktop app).
 
 Nothing else to install: no Node.js, no Python, no downloads.
-
----
 
 ## What it uses on your Mac
 
@@ -40,15 +38,11 @@ The script only talks to Apple Notes. It runs no other programs, downloads nothi
 
 **Network:** the skill itself sends nothing anywhere. If your Notes default account is iCloud, Apple syncs the notes to your other devices as usual.
 
----
-
 ## Permissions you'll be asked for
 
 1. **macOS: "… wants access to control Notes"**: appears the first time the skill runs (the app named is Terminal, Claude, or Claude Code). Click **Allow**. The skill never tries to get around this prompt.
    - Clicked "Don't Allow" by mistake? Go to **System Settings → Privacy & Security → Automation** and turn on **Notes** for that app.
 2. **Claude Code: approval to run commands**: Claude Code may ask before running `osascript`. Approve to continue.
-
----
 
 ## Install
 
@@ -87,8 +81,6 @@ Type:
 
 Open Apple Notes. You should see a **Claude Notes** folder with a new note in it.
 
----
-
 ## How to use
 
 | You type | What happens |
@@ -105,8 +97,6 @@ Open Apple Notes. You should see a **Claude Notes** folder with a new note in it
 - Asking for a label ignores plural and upper/lower case: "Decisions" finds `[Decision]`.
 - In Claude Code the command is `/note`. If another installed plugin also has a skill called `note`, use the full name `/note-it-down:note`.
 
----
-
 ## How it works, start to finish
 
 1. **You type `/note …`** in Claude Code or the Claude Desktop app.
@@ -118,15 +108,11 @@ Open Apple Notes. You should see a **Claude Notes** folder with a new note in it
 5. **Diagrams** are saved as their Mermaid code, in a monospace font. Ask for them later (`show the diagrams in /note`) and Claude shows the code; in regular chat it also draws them.
 6. **Reading** (`/note` alone or in the middle of a message) **always re-reads the note fresh**, so anything you added or edited by hand in Apple Notes is included. Reading never creates anything.
 
----
-
 ## Where your notes live
 
 - **Apple Notes → Claude Notes** folder, in your default Notes account (usually iCloud).
 - **One note per chat session.**
 - They're normal notes: edit, move, share or delete them like any other note. Entries you type by hand are treated like saved ones. Separate your own entries with an empty line.
-
----
 
 ## Limitations
 
@@ -139,8 +125,6 @@ Open Apple Notes. You should see a **Claude Notes** folder with a new note in it
 - **Saving only works with `/note` at the start of a message.** A `/note` in the middle never saves.
 - **Text you save passes through your Claude conversation**, like anything else you type in the chat.
 
----
-
 ## Uninstall
 
 - **Claude Code:** `/plugin uninstall note-it-down@note-it-down`
@@ -148,16 +132,12 @@ Open Apple Notes. You should see a **Claude Notes** folder with a new note in it
 - Your notes stay in Apple Notes. Delete the **Claude Notes** folder yourself if you don't want them.
 - Regular chat only: delete `~/Library/Application Support/note-it-down` (the helper copy).
 
----
-
 ## For maintainers
 
 - Plugin layout: `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `skills/note/SKILL.md`, `skills/note/scripts/note.js`.
 - Build the ZIP for Releases with `scripts/build-skill-zip.sh` (writes `dist/note-it-down.zip`), then attach it to a GitHub Release. In the ZIP the skill is named `note-it-down`; in the plugin it stays `note`, so the command is `/note`.
 - When you bump the version, change it in `plugin.json`, `marketplace.json`, `VERSION` in `note.js`, and the `note-<version>.js` file name in `SKILL.md`. The build script checks they match.
 - Check the plugin with `claude plugin validate .`
-
----
 
 ## License
 
