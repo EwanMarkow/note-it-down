@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "note-it-down",
   "display_name": "Note It Down!",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Save bits of your Claude chat to Apple Notes with /note, and read them back.",
   "long_description": "Lets regular Claude chat in the Claude Desktop app on macOS save and read notes in Apple Notes, in a \"Claude Notes\" folder with one note per conversation. It gives Claude two tools, note_save and note_read, which run a small script with macOS's built-in osascript. Use it together with the Note It Down! skill. The extension runs no other programs, opens no network connections and writes no files. The first time it runs, macOS asks you to allow Claude to control Notes.",
   "author": {

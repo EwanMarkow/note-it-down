@@ -40,9 +40,19 @@ Apple Notes is reached through the **Note It Down!** desktop extension, which ru
 helper on the user's Mac and gives you two tools: `note_save` and `note_read`. Do not use your
 code sandbox or any shell: it is a separate Linux machine and cannot reach Notes.
 
-1. If the `note_save` / `note_read` tools are not available, say plainly that /note in chat
-   needs the Note It Down! extension installed in the Claude desktop app on a Mac (the file
-   `note-it-down.mcpb` from the project's GitHub Releases), and stop.
+1. Check this first, before anything else: if the `note_save` / `note_read` tools are not
+   available, the extension is missing. Do not say "something went wrong" or "I can't reach
+   Notes" on its own, do not guess at other causes, and do not try any other way. Reply with
+   this message (you may translate it into the user's language) and stop:
+
+   > **The Note It Down! desktop extension isn't installed, so I can't save or read your
+   > notes yet.** The skill only holds the /note rules; the extension does the work on your Mac.
+   > 1. Download `note-it-down.mcpb` from
+   >    https://github.com/EwanMarkow/note-it-down/releases/latest
+   > 2. Double-click it and click **Install** (or drag it onto Settings → Extensions).
+   > 3. Make sure it's turned on, then start a **new chat** and send your /note again.
+   >
+   > This only works in the Claude desktop app on a Mac. Nothing was saved.
 2. Short ID (`session_id`): on the first save in this conversation, make up a random
    8-character ID of lowercase letters and digits. Reuse it for every later `/note` in this
    conversation (it is at the end of the note title in your earlier save confirmations). If you

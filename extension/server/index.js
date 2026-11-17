@@ -16,7 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-const VERSION = '0.2.0';
+const VERSION = '0.2.1';
 // In the packed .mcpb, note.js sits next to this file. When run straight from a
 // checkout of the repo, use the skill's copy instead.
 const NOTE_JS = [
