@@ -53,15 +53,15 @@ code sandbox or any shell: it is a separate Linux machine and cannot reach Notes
    > 3. Make sure it's turned on, then start a **new chat** and send your /note again.
    >
    > This only works in the Claude desktop app on a Mac. Nothing was saved.
-2. Short ID (`session_id`): on the first save in this conversation, make up a random
+2. Short ID (`note_id`): on the first save in this conversation, make up a random
    8-character ID of lowercase letters and digits. Reuse it for every later `/note` in this
    conversation (it is at the end of the note title in your earlier save confirmations). If you
    are reading and no save has happened in this conversation yet, there is no ID: reply
    "Nothing saved yet."
 3. The tools return the same JSON as the helper commands below:
-   - save: `note_save` with `session_id`, `title`, `text` (and `allow_attachment_loss: true`
+   - save: `note_save` with `note_id`, `title`, `text` (and `allow_attachment_loss: true`
      only in the confirmed case in section 3).
-   - read: `note_read` with `session_id`.
+   - read: `note_read` with `note_id`.
 
 ## 3. Saving
 
@@ -76,7 +76,7 @@ osascript -l JavaScript "${CLAUDE_SKILL_DIR}/scripts/note.js" save --id <SHORT_I
 <the user's text, verbatim>
 NOTE_IT_DOWN_EOF
 ```
-Regular chat: `note_save` with `session_id`, `title` and `text` (the user's text, verbatim).
+Regular chat: `note_save` with `note_id`, `title` and `text` (the user's text, verbatim).
 
 - Title: 2-6 plain words taken from this entry (without the label). The helper uses it only
   when it creates the note, as `<YYYY-MM-DD>_<title>_<SHORT_ID>`; later saves ignore it.
@@ -109,7 +109,7 @@ Claude Code:
 ```
 osascript -l JavaScript "${CLAUDE_SKILL_DIR}/scripts/note.js" read --id <SHORT_ID>
 ```
-Regular chat: `note_read` with `session_id`.
+Regular chat: `note_read` with `note_id`.
 
 `read` never creates anything. If it returns `"found": false`, reply "Nothing saved yet."
 Otherwise it returns `title`, `entryCount`, `labels` (in order of first appearance),

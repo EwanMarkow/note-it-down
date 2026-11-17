@@ -1,6 +1,6 @@
 {
   "name": "note-it-down",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Save bits of your Claude conversation to Apple Notes with /note, and read them back. One note per session in a \"Claude Notes\" folder. macOS only.",
   "author": {
     "name": "Ivan Markov"

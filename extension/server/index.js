@@ -16,7 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-const VERSION = '0.2.2';
+const VERSION = '0.2.3';
 // In the packed .mcpb, note.js sits next to this file. When run straight from a
 // checkout of the repo, use the skill's copy instead.
 const NOTE_JS = [
@@ -31,9 +31,8 @@ const INSTRUCTIONS =
   'passed verbatim); a bare "/note" or "/note" elsewhere in the message is a read (note_read). ' +
   'Never save without "/note" at the start. Follow the note-it-down skill for the details.';
 
-const SESSION_ID = {
+const NOTE_ID = {
   type: 'string',
-  pattern: '^[A-Za-z0-9]{8}$',
   description: 'The 8-character ID of this conversation\'s note. Make up a random one (lowercase ' +
     'letters and digits) on the first save in a conversation and reuse it for every later call.',
 };
@@ -50,7 +49,7 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        session_id: SESSION_ID,
+        note_id: NOTE_ID,
         title: {
           type: 'string',
           description: '2-6 plain words from this entry, without the label. Used only when the note is created.',
@@ -65,7 +64,7 @@ const TOOLS = [
             'attachments in the note may be deleted or broken. Never set it on your own.',
         },
       },
-      required: ['session_id', 'title', 'text'],
+      required: ['note_id', 'title', 'text'],
       additionalProperties: false,
     },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
@@ -78,8 +77,8 @@ const TOOLS = [
       'or when "/note" appears anywhere other than the start of the user\'s message.',
     inputSchema: {
       type: 'object',
-      properties: { session_id: SESSION_ID },
-      required: ['session_id'],
+      properties: { note_id: NOTE_ID },
+      required: ['note_id'],
       additionalProperties: false,
     },
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
@@ -91,23 +90,23 @@ const TOOLS = [
 async function callTool(name, rawArgs) {
   const args = normalizeArgs(rawArgs);
   logCall(name, rawArgs, args);
-  const sessionId = String(args.session_id === undefined || args.session_id === null ? '' : args.session_id).trim();
-  if (!/^[A-Za-z0-9]{8}$/.test(sessionId)) {
+  const noteId = String(args.note_id === undefined || args.note_id === null ? '' : args.note_id).trim();
+  if (!/^[A-Za-z0-9]{8}$/.test(noteId)) {
     return toolResult({
       ok: false,
       code: 'bad-id',
-      error: 'session_id must be exactly 8 letters or digits.',
+      error: 'note_id must be exactly 8 letters or digits.',
       received: describeArgs(rawArgs),
     });
   }
   if (name === 'note_read') {
-    return toolResult(await runHelper(['read', '--id', sessionId], ''));
+    return toolResult(await runHelper(['read', '--id', noteId], ''));
   }
   if (name === 'note_save') {
     if (typeof args.text !== 'string' || !args.text.trim()) {
       return toolResult({ ok: false, code: 'empty', error: 'Nothing to save: the text is empty.' });
     }
-    const helperArgs = ['save', '--id', sessionId, '--title', String(args.title || '')];
+    const helperArgs = ['save', '--id', noteId, '--title', String(args.title || '')];
     if (args.allow_attachment_loss === true || args.allow_attachment_loss === 'true') {
       helperArgs.push('--allow-attachment-loss');
     }
@@ -129,7 +128,12 @@ function normalizeArgs(raw) {
   }
   if (!args || typeof args !== 'object' || Array.isArray(args)) args = {};
   const out = Object.assign({}, args);
-  const aliases = { sessionId: 'session_id', session: 'session_id', id: 'session_id', allowAttachmentLoss: 'allow_attachment_loss' };
+  // note_id used to be called session_id. Some chat relays drop an argument named
+  // session_id, which is why it was renamed; the old names are still accepted.
+  const aliases = {
+    noteId: 'note_id', session_id: 'note_id', sessionId: 'note_id', id: 'note_id',
+    allowAttachmentLoss: 'allow_attachment_loss',
+  };
   Object.keys(aliases).forEach(alias => {
     if (out[aliases[alias]] === undefined && out[alias] !== undefined) out[aliases[alias]] = out[alias];
   });
@@ -142,7 +146,7 @@ function describeArgs(raw) {
   if (!raw || typeof raw !== 'object') return String(raw);
   return Object.keys(raw).map(k => {
     const v = raw[k];
-    if (k === 'session_id' || k === 'sessionId') return k + '=' + JSON.stringify(v);
+    if (/^(note_?id|noteId|session_?id|sessionId|id)$/.test(k)) return k + '=' + JSON.stringify(v);
     return k + ':' + (typeof v === 'string' ? 'string(' + v.length + ')' : typeof v);
   }).join(', ') || '(no arguments)';
 }
