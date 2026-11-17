@@ -18,7 +18,7 @@
 // attachments, "save" stops and reports how many, unless --allow-attachment-loss is
 // given (the skill passes it only after the user says yes).
 
-const VERSION = '0.1.0';
+const VERSION = '0.2.0';
 const FOLDER_NAME = 'Claude Notes';
 const GRAY = 'color: #8e8e93'; // Notes keeps text colors, but drops small font sizes
 const STAMP_RE = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;

@@ -1,0 +1,45 @@
+{
+  "manifest_version": "0.3",
+  "name": "note-it-down",
+  "display_name": "Note It Down!",
+  "version": "0.2.0",
+  "description": "Save bits of your Claude chat to Apple Notes with /note, and read them back.",
+  "long_description": "Lets regular Claude chat in the Claude Desktop app on macOS save and read notes in Apple Notes, in a \"Claude Notes\" folder with one note per conversation. It gives Claude two tools, note_save and note_read, which run a small script with macOS's built-in osascript. Use it together with the Note It Down! skill. The extension runs no other programs, opens no network connections and writes no files. The first time it runs, macOS asks you to allow Claude to control Notes.",
+  "author": {
+    "name": "Ivan Markov",
+    "url": "https://github.com/EwanMarkow"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EwanMarkow/note-it-down"
+  },
+  "homepage": "https://github.com/EwanMarkow/note-it-down",
+  "support": "https://github.com/EwanMarkow/note-it-down/issues",
+  "icon": "icon.png",
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index.js"]
+    }
+  },
+  "tools": [
+    {
+      "name": "note_save",
+      "description": "Append an entry to this conversation's note in Apple Notes (creates the Claude Notes folder and note on the first save)."
+    },
+    {
+      "name": "note_read",
+      "description": "Read this conversation's note from Apple Notes. Never creates anything."
+    }
+  ],
+  "keywords": ["apple-notes", "notes", "macos"],
+  "license": "MIT",
+  "compatibility": {
+    "platforms": ["darwin"],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  }
+}

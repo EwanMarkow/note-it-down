@@ -36,27 +36,22 @@ Session ID given to this skill: `${CLAUDE_SESSION_ID}`
 
 ### Regular Claude chat (the line above still shows a `${...}` placeholder)
 
-Apple Notes is only reachable through a tool that runs shell commands **on the user's Mac**
-(the Claude desktop app's device shell tool, available only while the app is open and linked
-to the Mac). Your own code sandbox is a separate Linux machine and cannot reach Notes.
+Apple Notes is reached through the **Note It Down!** desktop extension, which runs the same
+helper on the user's Mac and gives you two tools: `note_save` and `note_read`. Do not use your
+code sandbox or any shell: it is a separate Linux machine and cannot reach Notes.
 
-1. If you have no tool that runs commands on the user's Mac, say plainly that Apple Notes
-   can't be reached from here (it needs the Claude desktop app on the Mac) and stop.
-2. Run `uname -s` with that tool. If it is not `Darwin`, it is not the Mac: say so and stop.
-3. Install the helper once (skip if the check prints `present`):
-   `test -f "$HOME/Library/Application Support/note-it-down/note-0.1.0.js" && echo present`
-   To install, read `scripts/note.js` from this skill's folder and write it to the Mac
-   **verbatim** (no edits, no shortening):
-   ```
-   mkdir -p "$HOME/Library/Application Support/note-it-down" && cat > "$HOME/Library/Application Support/note-it-down/note-0.1.0.js" <<'NOTE_IT_DOWN_JS_EOF'
-   <the full contents of scripts/note.js>
-   NOTE_IT_DOWN_JS_EOF
-   ```
-4. Helper: `osascript -l JavaScript "$HOME/Library/Application Support/note-it-down/note-0.1.0.js" <command> ...`
-5. Short ID: on the first save in this conversation, make up a random 8-character ID of
-   lowercase letters and digits. Reuse it for every later `/note` in this conversation (it is
-   at the end of the note title in your earlier save confirmations). If you are reading and no
-   save has happened in this conversation yet, there is no ID: reply "Nothing saved yet."
+1. If the `note_save` / `note_read` tools are not available, say plainly that /note in chat
+   needs the Note It Down! extension installed in the Claude desktop app on a Mac (the file
+   `note-it-down.mcpb` from the project's GitHub Releases), and stop.
+2. Short ID (`session_id`): on the first save in this conversation, make up a random
+   8-character ID of lowercase letters and digits. Reuse it for every later `/note` in this
+   conversation (it is at the end of the note title in your earlier save confirmations). If you
+   are reading and no save has happened in this conversation yet, there is no ID: reply
+   "Nothing saved yet."
+3. The tools return the same JSON as the helper commands below:
+   - save: `note_save` with `session_id`, `title`, `text` (and `allow_attachment_loss: true`
+     only in the confirmed case in section 3).
+   - read: `note_read` with `session_id`.
 
 ## 3. Saving
 
@@ -65,14 +60,16 @@ space (or line break) after it, character for character, including any `[Label]`
 code fences. Do not fix, reword, trim, translate, summarise or add a label. Labels come only
 from the user.
 
+Claude Code:
 ```
-osascript -l JavaScript "<helper>" save --id <SHORT_ID> --title "<2-6 word title>" <<'NOTE_IT_DOWN_EOF'
+osascript -l JavaScript "${CLAUDE_SKILL_DIR}/scripts/note.js" save --id <SHORT_ID> --title "<2-6 word title>" <<'NOTE_IT_DOWN_EOF'
 <the user's text, verbatim>
 NOTE_IT_DOWN_EOF
 ```
+Regular chat: `note_save` with `session_id`, `title` and `text` (the user's text, verbatim).
 
-- `--title`: 2-6 plain words taken from this entry (without the label). The helper uses it
-  only when it creates the note, as `<YYYY-MM-DD>_<title>_<SHORT_ID>`; later saves ignore it.
+- Title: 2-6 plain words taken from this entry (without the label). The helper uses it only
+  when it creates the note, as `<YYYY-MM-DD>_<title>_<SHORT_ID>`; later saves ignore it.
 - The heredoc delimiter is quoted, so nothing in the text is expanded. If the text itself
   contains a line `NOTE_IT_DOWN_EOF`, pick another delimiter.
 - Markdown becomes Notes formatting. Code blocks, Mermaid diagrams included, are saved as
@@ -89,18 +86,20 @@ pictures and attachments the user added by hand, or leave them broken. Tell the 
 the note has (`attachments`), that saving may delete them or break them, and ask whether to
 save anyway. Then:
 - Only if the user clearly says yes in their reply, run the **same** save again (same text,
-  same ID) with `--allow-attachment-loss` added. Tell them the entry was saved and that they
+  same ID) with `--allow-attachment-loss` added (in chat: `allow_attachment_loss: true`). Tell them the entry was saved and that they
   should check the note's pictures (`attachmentsBefore` / `attachmentsAfter` are counts only;
   a picture can be broken even when the count is unchanged).
 - If they say no, or anything else, save nothing.
-- Never pass `--allow-attachment-loss` on your own, and never reuse an earlier yes for a later
+- Never pass `--allow-attachment-loss` / `allow_attachment_loss` on your own, and never reuse an earlier yes for a later
   save: each save into a note with attachments needs its own yes.
 
 ## 4. Reading
 
+Claude Code:
 ```
-osascript -l JavaScript "<helper>" read --id <SHORT_ID>
+osascript -l JavaScript "${CLAUDE_SKILL_DIR}/scripts/note.js" read --id <SHORT_ID>
 ```
+Regular chat: `note_read` with `session_id`.
 
 `read` never creates anything. If it returns `"found": false`, reply "Nothing saved yet."
 Otherwise it returns `title`, `entryCount`, `labels` (in order of first appearance),
@@ -134,10 +133,11 @@ the text as `[picture or attachment]`).
 
 ## 6. When something goes wrong
 
-The helper prints JSON. If `"ok": false`, explain `error` in plain words; never retry another
+The helper (and each tool) returns JSON. If `"ok": false`, explain `error` in plain words; never retry another
 way (the only retry is the confirmed `--allow-attachment-loss` save in section 3).
 
 - `not-authorized`: macOS is blocking control of Notes. Tell the user to turn on Notes for
-  this app in System Settings > Privacy & Security > Automation, then try again.
+  this app (Claude, in regular chat) in System Settings > Privacy & Security > Automation,
+  then try again.
 - `attachments-would-be-lost`: see section 3.
-- `osascript` not found, or not macOS: Apple Notes is only reachable on a Mac.
+- `not-macos`, or `osascript` not found: Apple Notes is only reachable on a Mac.
