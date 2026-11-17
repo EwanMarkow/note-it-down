@@ -1,3 +1,5 @@
+<img src="assets/icon.png" alt="Note It Down! icon" width="96" align="right">
+
 # Note It Down!
 
 Save bits of your Claude conversation into **Apple Notes** with one command, `/note`, and read them back later in the same chat. Every chat session gets its own note in a **Claude Notes** folder, so your decisions, ideas and diagrams stay in one place you can open, edit and sync like any other note.
