@@ -14,11 +14,12 @@
 // nothing, runs no other programs and writes no files.
 //
 // About attachments: Apple Notes only lets scripts change a note by replacing its
-// whole text, and that deletes (or leaves broken) pictures and attachments in it. So if the note has
-// attachments, "save" stops and reports how many, unless --allow-attachment-loss is
-// given (the skill passes it only after the user says yes).
+// whole text, and that breaks pictures and attachments in it (they turn into empty
+// "File" boxes). So if the note has attachments, "save" stops and reports how many.
+// With --allow-attachment-loss (the skill passes it only after the user says yes),
+// it removes them from the note completely and then saves.
 
-const VERSION = '0.2.3';
+const VERSION = '0.2.4';
 const FOLDER_NAME = 'Claude Notes';
 const GRAY = 'color: #8e8e93'; // Notes keeps text colors, but drops small font sizes
 const STAMP_RE = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;
@@ -144,9 +145,12 @@ function save(id, title, allowAttachmentLoss) {
     attachmentsBefore = note.attachments.length;
     if (attachmentsBefore > 0 && !allowAttachmentLoss) {
       return fail('attachments-would-be-lost',
-        'This note has ' + attachmentsBefore + ' picture(s) or attachment(s). Adding text from a script ' +
-        'can delete them or leave them broken, so nothing was saved.', { attachments: attachmentsBefore });
+        'This note has ' + attachmentsBefore + ' picture(s) or attachment(s). Saving from a script would ' +
+        'break them, so nothing was saved. If you agree, they are removed from the note and the entry ' +
+        'is saved.', { attachments: attachmentsBefore });
     }
+    // Confirmed: remove them first, so no broken "File" box is left behind.
+    if (attachmentsBefore > 0) deleteAttachments(note);
     // Notes hands back non-breaking spaces as plain spaces; restore them so code
     // indentation survives. Text typed by hand at the very end must not run into
     // the new entry, so make sure an empty line separates them.
@@ -154,6 +158,8 @@ function save(id, title, allowAttachmentLoss) {
     const lastLine = existing.slice(existing.lastIndexOf('\n') + 1);
     const separator = isEmptyLine(lastLine) ? '' : '\n<div><br></div>';
     note.body = existing + separator + '\n' + entryHtml;
+    // Rewriting can bring back an empty "File" box; remove any that appeared.
+    if (attachmentsBefore > 0 && note.attachments.length > 0) deleteAttachments(note);
   }
 
   const parsed = parseNote(note.plaintext(), note.body());
@@ -165,11 +171,22 @@ function save(id, title, allowAttachmentLoss) {
     entryCount: parsed.entries.length,
   };
   if (attachmentsBefore > 0) {
-    // A count that stays the same does not prove the pictures still display.
-    result.attachmentsBefore = attachmentsBefore;
-    result.attachmentsAfter = note.attachments.length;
+    const left = note.attachments.length;
+    result.attachmentsRemoved = attachmentsBefore;
+    if (left > 0) result.warnings = [left + ' picture(s) or attachment(s) could not be removed from the note.'];
   }
   return result;
+}
+
+// Deletes every picture/attachment in the note, by id.
+function deleteAttachments(note) {
+  const Notes = Application('Notes');
+  note.attachments.id().forEach(attId => {
+    try {
+      Notes.delete(note.attachments.byId(attId));
+    } catch (e) { /* reported by the caller through the remaining count */ }
+  });
+  delay(0.3);
 }
 
 // Turns leading spaces and double spaces in text (not in tags) back into &nbsp;.
@@ -230,7 +247,12 @@ function read(id) {
 //     lines; their blank lines hold a single space).
 // The note's HTML is used to put list bullets back and to spot code lines.
 function parseNote(plaintext, bodyHtml) {
-  const lines = annotateLines(String(plaintext).replace(/\r\n?/g, '\n').split('\n'), bodyHtml);
+  // Shift+Return in Notes makes a soft line break (U+2028) inside one paragraph.
+  // Treat it as a new line too, after matching paragraphs with the HTML.
+  const lines = [];
+  annotateLines(String(plaintext).replace(/\r\n?/g, '\n').split('\n'), bodyHtml).forEach(line => {
+    line.text.split(/[\u2028\u2029]/).forEach(part => lines.push({ text: part, code: line.code }));
+  });
   const title = lines.shift();
   const entries = [];
   let cur = null;

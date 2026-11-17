@@ -26,15 +26,25 @@ hand. Run the helper again for every `/note` message, even if you read the note 
 
 ## 2. Where you are, and how to run the helper
 
-Session ID given to this skill: `${CLAUDE_SESSION_ID}`
+Decide by the tools you have, in this order. Do not decide by whether a session ID is shown
+below: regular chat can show one too.
 
-### Claude Code (the line above shows a UUID)
+1. **The `note_save` and `note_read` tools are available** (the Note It Down! desktop
+   extension): you are in regular chat. Use those tools, as in "Regular Claude chat" below,
+   even if you also have a shell.
+2. **Otherwise, you have a shell tool:** run `uname -s`. If it prints `Darwin`, you are in
+   Claude Code on the user's Mac: use the helper script, as in "Claude Code" below. If it prints
+   anything else (a chat's code sandbox is Linux), the extension is missing: give the message in
+   step 1 of "Regular Claude chat" and stop.
+3. **Neither:** the extension is missing. Give that same message and stop.
 
-- Short ID = the first 8 characters of that session ID.
+### Claude Code (no `note_save` tool; `uname -s` prints Darwin)
+
+- Short ID = the first 8 characters of this session ID: `${CLAUDE_SESSION_ID}`
 - Helper: `${CLAUDE_SKILL_DIR}/scripts/note.js`. Run it with the Bash tool:
   `osascript -l JavaScript "${CLAUDE_SKILL_DIR}/scripts/note.js" <command> ...`
 
-### Regular Claude chat (the line above still shows a `${...}` placeholder)
+### Regular Claude chat (the `note_save` / `note_read` tools)
 
 Apple Notes is reached through the **Note It Down!** desktop extension, which runs the same
 helper on the user's Mac and gives you two tools: `note_save` and `note_read`. Do not use your
@@ -91,14 +101,14 @@ Reply with one short line, e.g. `Saved to "2026-11-17_Pick a database_ab12cd34" 
 Mention when the folder or note was just created.
 
 **If the note has pictures or attachments** (`"code": "attachments-would-be-lost"`): nothing
-was saved. Apple Notes only lets scripts add text by rewriting the whole note, which can delete
-pictures and attachments the user added by hand, or leave them broken. Tell the user how many
-the note has (`attachments`), that saving may delete them or break them, and ask whether to
+was saved. Apple Notes only lets scripts add text by rewriting the whole note, which breaks
+pictures and attachments the user added by hand. Tell the user how many the note has
+(`attachments`), that saving will **remove them from the note completely**, and ask whether to
 save anyway. Then:
 - Only if the user clearly says yes in their reply, run the **same** save again (same text,
-  same ID) with `--allow-attachment-loss` added (in chat: `allow_attachment_loss: true`). Tell them the entry was saved and that they
-  should check the note's pictures (`attachmentsBefore` / `attachmentsAfter` are counts only;
-  a picture can be broken even when the count is unchanged).
+  same ID) with `--allow-attachment-loss` added (in chat: `allow_attachment_loss: true`). Tell
+  them the entry was saved and how many pictures/attachments were removed
+  (`attachmentsRemoved`). If the result has `warnings`, pass them on.
 - If they say no, or anything else, save nothing.
 - Never pass `--allow-attachment-loss` / `allow_attachment_loss` on your own, and never reuse an earlier yes for a later
   save: each save into a note with attachments needs its own yes.
