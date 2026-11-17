@@ -11,7 +11,7 @@
       "name": "note-it-down",
       "source": "./",
       "description": "Save bits of your Claude conversation to Apple Notes with /note, and read them back. macOS only.",
-      "version": "0.2.1"
+      "version": "0.2.2"
     }
   ]
 }

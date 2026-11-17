@@ -2,7 +2,7 @@
 # Builds both release files into dist/:
 #   note-it-down.zip   the skill, for Customize -> Skills in the Claude Desktop app
 #   note-it-down.mcpb  the desktop extension that lets regular chat reach Apple Notes
-# In the ZIP the skill is named "note-it-down" (in the plugin it is "note", for /note).
+# In the ZIP the skill is named "note", same as the plugin, so the command is /note everywhere.
 set -eu
 
 cd "$(dirname "$0")/.."
@@ -19,13 +19,13 @@ check extension/manifest.json "\"version\": \"$version\""
 check extension/server/index.js "const VERSION = '$version';"
 
 rm -rf dist
-mkdir -p dist/note-it-down/scripts dist/extension/server
+mkdir -p dist/note/scripts dist/extension/server
 
 # Skill ZIP
-sed 's/^name: note$/name: note-it-down/' skills/note/SKILL.md > dist/note-it-down/SKILL.md
-cp skills/note/scripts/note.js dist/note-it-down/scripts/note.js
-cp LICENSE dist/note-it-down/LICENSE
-(cd dist && zip -qrX note-it-down.zip note-it-down)
+cp skills/note/SKILL.md dist/note/SKILL.md
+cp skills/note/scripts/note.js dist/note/scripts/note.js
+cp LICENSE dist/note/LICENSE
+(cd dist && zip -qrX note-it-down.zip note)
 
 # Desktop extension (.mcpb), using the same note.js
 cp extension/manifest.json assets/icon.png LICENSE dist/extension/

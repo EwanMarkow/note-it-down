@@ -133,13 +133,13 @@ Open Apple Notes. You should see a **Claude Notes** folder with a new note in it
 ## Uninstall
 
 - **Claude Code:** `/plugin uninstall note-it-down@note-it-down`
-- **Claude Desktop app:** Customize → Skills → remove **note-it-down**, and Settings → Extensions → remove **Note It Down!**
+- **Claude Desktop app:** Customize → Skills → remove **note**, and Settings → Extensions → remove **Note It Down!**
 - Your notes stay in Apple Notes. Delete the **Claude Notes** folder yourself if you don't want them.
 
 ## For maintainers
 
 - Layout: `.claude-plugin/` (plugin and marketplace manifests), `skills/note/` (`SKILL.md` and `scripts/note.js`), `extension/` (desktop extension `manifest.json` and `server/index.js`), `assets/` (icon).
-- `scripts/build-release.sh` builds both release files into `dist/`: `note-it-down.zip` (the skill; inside it the skill is named `note-it-down`, while the plugin keeps `note` so the command is `/note`) and `note-it-down.mcpb` (the extension, with a copy of `note.js`, packed with the pinned `@anthropic-ai/mcpb@2.1.2`). Attach both to the GitHub Release.
+- `scripts/build-release.sh` builds both release files into `dist/`: `note-it-down.zip` (the skill, named `note` like in the plugin, so the command is `/note` everywhere) and `note-it-down.mcpb` (the extension, with a copy of `note.js`, packed with the pinned `@anthropic-ai/mcpb@2.1.2`). Attach both to the GitHub Release.
 - When you bump the version, change it in `plugin.json`, `marketplace.json`, `extension/manifest.json`, and `VERSION` in `note.js` and `extension/server/index.js`. The build script checks they match.
 - Check the plugin with `claude plugin validate .`
 

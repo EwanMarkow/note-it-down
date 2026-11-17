@@ -16,7 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-const VERSION = '0.2.1';
+const VERSION = '0.2.2';
 // In the packed .mcpb, note.js sits next to this file. When run straight from a
 // checkout of the repo, use the skill's copy instead.
 const NOTE_JS = [
@@ -88,22 +88,70 @@ const TOOLS = [
 
 // ---------------------------------------------------------------- tools
 
-async function callTool(name, args) {
-  if (!/^[A-Za-z0-9]{8}$/.test(String(args.session_id || ''))) {
-    return toolResult({ ok: false, code: 'bad-id', error: 'session_id must be exactly 8 letters or digits.' });
+async function callTool(name, rawArgs) {
+  const args = normalizeArgs(rawArgs);
+  logCall(name, rawArgs, args);
+  const sessionId = String(args.session_id === undefined || args.session_id === null ? '' : args.session_id).trim();
+  if (!/^[A-Za-z0-9]{8}$/.test(sessionId)) {
+    return toolResult({
+      ok: false,
+      code: 'bad-id',
+      error: 'session_id must be exactly 8 letters or digits.',
+      received: describeArgs(rawArgs),
+    });
   }
   if (name === 'note_read') {
-    return toolResult(await runHelper(['read', '--id', args.session_id], ''));
+    return toolResult(await runHelper(['read', '--id', sessionId], ''));
   }
   if (name === 'note_save') {
     if (typeof args.text !== 'string' || !args.text.trim()) {
       return toolResult({ ok: false, code: 'empty', error: 'Nothing to save: the text is empty.' });
     }
-    const helperArgs = ['save', '--id', args.session_id, '--title', String(args.title || '')];
-    if (args.allow_attachment_loss === true) helperArgs.push('--allow-attachment-loss');
+    const helperArgs = ['save', '--id', sessionId, '--title', String(args.title || '')];
+    if (args.allow_attachment_loss === true || args.allow_attachment_loss === 'true') {
+      helperArgs.push('--allow-attachment-loss');
+    }
     return toolResult(await runHelper(helperArgs, args.text));
   }
   return toolResult({ ok: false, code: 'unknown-tool', error: 'Unknown tool: ' + name });
+}
+
+// Clients don't all send tool arguments the same way: some send a JSON string
+// instead of an object, or camelCase names. Accept those shapes.
+function normalizeArgs(raw) {
+  let args = raw;
+  if (typeof args === 'string') {
+    try {
+      args = JSON.parse(args);
+    } catch (e) {
+      args = {};
+    }
+  }
+  if (!args || typeof args !== 'object' || Array.isArray(args)) args = {};
+  const out = Object.assign({}, args);
+  const aliases = { sessionId: 'session_id', session: 'session_id', id: 'session_id', allowAttachmentLoss: 'allow_attachment_loss' };
+  Object.keys(aliases).forEach(alias => {
+    if (out[aliases[alias]] === undefined && out[alias] !== undefined) out[aliases[alias]] = out[alias];
+  });
+  return out;
+}
+
+// The shape of the arguments (names, types, lengths), never their text.
+function describeArgs(raw) {
+  if (typeof raw === 'string') return 'a string of ' + raw.length + ' characters';
+  if (!raw || typeof raw !== 'object') return String(raw);
+  return Object.keys(raw).map(k => {
+    const v = raw[k];
+    if (k === 'session_id' || k === 'sessionId') return k + '=' + JSON.stringify(v);
+    return k + ':' + (typeof v === 'string' ? 'string(' + v.length + ')' : typeof v);
+  }).join(', ') || '(no arguments)';
+}
+
+// Goes to stderr, which Claude Desktop writes to its log for this extension
+// (~/Library/Logs/Claude/mcp-server-Note It Down!.log).
+function logCall(name, raw, args) {
+  process.stderr.write('[note-it-down] tools/call ' + name + ' raw=' + describeArgs(raw) +
+    (raw === args ? '' : ' normalized=' + describeArgs(args)) + '\n');
 }
 
 function toolResult(result) {
