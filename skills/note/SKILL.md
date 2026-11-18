@@ -26,19 +26,28 @@ hand. Run the helper again for every `/note` message, even if you read the note 
 
 ## 2. Where you are, and how to run the helper
 
-Decide by the tools you have, in this order. Do not decide by whether a session ID is shown
-below: regular chat can show one too.
+Decide once per conversation, in this order, and reuse the answer for every later `/note`.
+Do not decide by whether a session ID is shown below: regular chat can show one too. Do not
+decide by whether the `note_save` / `note_read` tools are there either: the Code tab of the
+Claude Desktop app shows them too, but Claude Code must still use the helper script.
 
-1. **The `note_save` and `note_read` tools are available** (the Note It Down! desktop
-   extension): you are in regular chat. Use those tools, as in "Regular Claude chat" below,
-   even if you also have a shell.
-2. **Otherwise, you have a shell tool:** run `uname -s`. If it prints `Darwin`, you are in
-   Claude Code on the user's Mac: use the helper script, as in "Claude Code" below. If it prints
-   anything else (a chat's code sandbox is Linux), the extension is missing: give the message in
-   step 1 of "Regular Claude chat" and stop.
-3. **Neither:** the extension is missing. Give that same message and stop.
+1. **You have a shell tool (Bash):** run this one command (with the helper path from "Claude
+   Code" below):
+   `uname -s; test -f "<helper path>" && echo helper-found`
+   You are in **Claude Code on the user's Mac** only if all three hold:
+   - it prints `Darwin`,
+   - it prints `helper-found`,
+   - the session ID under "Claude Code" below is a real ID (letters, digits and dashes), not a
+     placeholder in `${...}`.
 
-### Claude Code (no `note_save` tool; `uname -s` prints Darwin)
+   Then use the helper script, as in "Claude Code" below, even if `note_save` / `note_read` are
+   also available. Otherwise (for example a chat's code sandbox, which is Linux), go on to step 2.
+2. **The `note_save` and `note_read` tools are available** (the Note It Down! desktop
+   extension): you are in regular chat. Use those tools, as in "Regular Claude chat" below.
+3. **Neither:** the extension is missing. Give the message in step 1 of "Regular Claude chat"
+   and stop.
+
+### Claude Code (all three checks in step 1 passed)
 
 - Short ID = the first 8 characters of this session ID: `${CLAUDE_SESSION_ID}`
 - Helper: `${CLAUDE_SKILL_DIR}/scripts/note.js`. Run it with the Bash tool:
@@ -47,8 +56,9 @@ below: regular chat can show one too.
 ### Regular Claude chat (the `note_save` / `note_read` tools)
 
 Apple Notes is reached through the **Note It Down!** desktop extension, which runs the same
-helper on the user's Mac and gives you two tools: `note_save` and `note_read`. Do not use your
-code sandbox or any shell: it is a separate Linux machine and cannot reach Notes.
+helper on the user's Mac and gives you two tools: `note_save` and `note_read`. Apart from the
+one check in step 1 of section 2, do not use your code sandbox or any shell: it is a separate
+Linux machine and cannot reach Notes.
 
 1. Check this first, before anything else: if the `note_save` / `note_read` tools are not
    available, the extension is missing. Do not say "something went wrong" or "I can't reach

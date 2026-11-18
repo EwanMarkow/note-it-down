@@ -19,7 +19,7 @@
 // With --allow-attachment-loss (the skill passes it only after the user says yes),
 // it removes them from the note completely and then saves.
 
-const VERSION = '0.2.4';
+const VERSION = '0.2.5';
 const FOLDER_NAME = 'Claude Notes';
 const GRAY = 'color: #8e8e93'; // Notes keeps text colors, but drops small font sizes
 const STAMP_RE = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;
